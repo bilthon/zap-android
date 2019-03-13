@@ -1,5 +1,7 @@
 package ln_zap.zap.setup;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -24,6 +26,7 @@ import androidx.preference.PreferenceManager;
 import ln_zap.zap.HomeActivity;
 import ln_zap.zap.R;
 import ln_zap.zap.qrCodeScanner.BaseScannerActivity;
+import ln_zap.zap.qrCodeScanner.QRCodeScannerActivity;
 import ln_zap.zap.util.PermissionsUtil;
 import ln_zap.zap.util.TimeOutUtil;
 import ln_zap.zap.util.ZapLog;
@@ -52,10 +55,21 @@ public class ConnectRemoteNodeActivity extends BaseScannerActivity implements ZB
             public void onClick(View v) {
                 ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
                 try {
-                    verifyDesiredConnection(clipboard.getPrimaryClip().toString());
+                AlertDialog.Builder adb = new AlertDialog.Builder(ConnectRemoteNodeActivity.this)
+                        .setTitle("Content of Clipboard:")
+                        .setMessage(clipboard.getPrimaryClip().getItemAt(0).getText())
+                        .setCancelable(true)
+                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) { }
+                        });
+                adb.show();
+
+
+                    //verifyDesiredConnection(clipboard.getPrimaryClip().toString());
                 } catch (NullPointerException e){
-                    showError(getResources().getString(R.string.error_emptyClipboardConnect),4000);
+                    showError("Your Clipboard does not contain any text",4000);
                 }
+
             }
         });
 
@@ -197,6 +211,15 @@ public class ConnectRemoteNodeActivity extends BaseScannerActivity implements ZB
     public void handleResult(Result rawResult) {
 
         verifyDesiredConnection(rawResult.getContents());
+
+        AlertDialog.Builder adb = new AlertDialog.Builder(this)
+                .setTitle("Content of QR-Code:")
+                .setMessage(rawResult.getContents())
+                .setCancelable(true)
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) { }
+                });
+        adb.show();
 
         // Note:
         // * Wait 2 seconds to resume the preview.

@@ -1,6 +1,8 @@
 package ln_zap.zap.qrCodeScanner;
 
+import android.app.AlertDialog;
 import android.content.ClipboardManager;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -23,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 import io.grpc.StatusRuntimeException;
+import ln_zap.zap.BuildConfig;
 import ln_zap.zap.R;
 import ln_zap.zap.SendActivity;
 import ln_zap.zap.connection.LndConnection;
@@ -74,10 +77,21 @@ public class QRCodeScannerActivity extends BaseScannerActivity implements ZBarSc
             public void onClick(View v) {
                 ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
                 try {
-                    validateInvoice(clipboard.getPrimaryClip().toString());
+                AlertDialog.Builder adb = new AlertDialog.Builder(QRCodeScannerActivity.this)
+                        .setTitle("Content of Clipboard:")
+                        .setMessage(clipboard.getPrimaryClip().getItemAt(0).getText())
+                        .setCancelable(true)
+                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) { }
+                        });
+                adb.show();
+
+
+
                 } catch (NullPointerException e){
-                    showError(getResources().getString(R.string.error_emptyClipboardPayment),4000);
+                    showError("Your Clipboard does not contain any text",4000);
                 }
+
             }
         });
 
@@ -115,7 +129,17 @@ public class QRCodeScannerActivity extends BaseScannerActivity implements ZBarSc
     @Override
     public void handleResult(Result rawResult) {
 
-        validateInvoice(rawResult.getContents());
+        //validateInvoice(rawResult.getContents());
+
+        AlertDialog.Builder adb = new AlertDialog.Builder(this)
+                .setTitle("Content of QR-Code:")
+                .setMessage(rawResult.getContents())
+                .setCancelable(true)
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) { }
+                });
+        adb.show();
+
 
         // Note:
         // * Wait 2 seconds to resume the preview.
